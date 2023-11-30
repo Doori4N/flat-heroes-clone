@@ -1,0 +1,89 @@
+{
+  "scenes": [
+    {
+      "walls": [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+      ],
+      "spawns": [
+        {
+          "x": 250,
+          "y": 400
+        },
+        {
+          "x": 290,
+          "y": 400
+        },
+        {
+          "x": 330,
+          "y": 400
+        },
+        {
+          "x": 370,
+          "y": 400
+        }
+      ],
+      "enemies": [
+        {
+          "type": "missile",
+          "position": {
+            "x": 30,
+            "y": 490
+          },
+          "positionType": "start",
+          "rotation": 90,
+          "speed": 200,
+          "delay": 1000,
+          "count": 6,
+          "interval": 0
+        },
+        {
+          "type": "missile",
+          "position": {
+            "x": 770,
+            "y": 310
+          },
+          "positionType": "start",
+          "rotation": -90,
+          "speed": 200,
+          "delay": 1000,
+          "count": 6,
+          "interval": 0
+        },
+        {
+          "type": "missile",
+          "position": {
+            "x": 780,
+            "y": 330
+          },
+          "positionType": "end",
+          "rotation": 0,
+          "speed": 100,
+          "delay": 6000,
+          "count": 40,
+          "interval": 50
+        },
+        {
+          "type": "missile",
+          "position": {
+            "x": 20,
+            "y": 330
+          },
+          "positionType": "start",
+          "rotation": 0,
+          "speed": 100,
+          "delay": 9000,
+          "count": 30,
+          "interval": 50
+        }
+      ],
+      "endTime": 15000
+    }
+  ]
+}
