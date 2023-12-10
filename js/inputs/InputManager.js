@@ -4,7 +4,7 @@ export default class InputManager {
         up: false,
         right: false,
         down: false,
-        space: false
+        jump: false
     };
     direction = {
         x: 0,
@@ -60,7 +60,7 @@ export default class InputManager {
                     this.states.right = true;
                     break;
                 case 'Space':
-                    this.states.space = true;
+                    this.states.jump = true;
                     break;
             }
         });
@@ -79,18 +79,21 @@ export default class InputManager {
                     this.states.right = false;
                     break;
                 case 'Space':
-                    this.states.space = false;
+                    this.states.jump = false;
                     break;
             }
         });
     }
     listenGamepad() {
         this.gamepad = navigator.getGamepads()[this.controllerIndex];
-        const deadzone = 0.1;
+        const deadzone = 0.3;
 
         this.states.left = false;
         this.states.right = false;
+        this.states.up = false;
+        this.states.down = false;
         this.direction.x = 0;
+        this.direction.y = 0;
 
         // get left joystick state
         if (Math.abs(this.gamepad.axes[0]) > deadzone) {
@@ -102,15 +105,20 @@ export default class InputManager {
             }
             this.direction.x = this.gamepad.axes[0];
         }
-        this.direction.y = this.gamepad.axes[1];
         if (Math.abs(this.gamepad.axes[1]) > deadzone) {
+            if (this.gamepad.axes[1] < 0) {
+                this.states.up = true;
+            }
+            else {
+                this.states.down = true;
+            }
             this.direction.y = this.gamepad.axes[1];
         }
 
-        // get buttons state
-        this.states.up = false;
+        // get jump button state
+        this.states.jump = false;
         if (this.gamepad.buttons[0].pressed) {
-            this.states.up = true;
+            this.states.jump = true;
         }
     }
 }

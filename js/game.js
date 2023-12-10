@@ -27,6 +27,7 @@ export default class Game {
         this.inputTypes = inputTypes;
     }
     start() {
+        this.soundsManager.sounds.musics.background.play();
         this.showMenu();
     }
     createScene(data) {
@@ -195,14 +196,8 @@ export default class Game {
         let enemies = [];
 
         enemyData.forEach(enemy => {
-            switch (enemy.type) {
-                case "missile":
-                    const spawner = new MissileSpawner(enemy, this.ctx, this, enemies);
-                    spawner.start();
-                    break;
-                default:
-                    break;
-            }
+            const spawner = new MissileSpawner(enemy, this.ctx, this, enemies);
+            spawner.start();
         });
 
         return enemies;

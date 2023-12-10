@@ -1,4 +1,6 @@
 import Missile from "./enemies/missile.js";
+import SeekerHead from "./enemies/seekerHead.js";
+
 export default class MissileSpawner {
     missileData;
     ctx;
@@ -21,13 +23,22 @@ export default class MissileSpawner {
         if (index >= this.missileData.count) {
             return;
         }
-        // position offset
+        // position offset to the top left corner of the canvas
         const offsetX = this.ctx.canvas.width / 2 - (800 / 2);
         const offsetY = this.ctx.canvas.height / 2 - (800 / 2);
         const positionX = this.missileData.position.x + (index * 16) * this.positionType * Math.cos(this.missileData.rotation * Math.PI / 180) + offsetX;
         const positionY = this.missileData.position.y - (index * 16) * this.positionType * Math.sin(this.missileData.rotation * Math.PI / 180) + offsetY;
 
-        this.enemies.push(new Missile(positionX, positionY, 8, 32, this.missileData.rotation, this.missileData.speed, this.ctx, this.game));
+        switch (this.missileData.type) {
+            case "missile":
+                this.enemies.push(new Missile(positionX, positionY, 8, 32, this.missileData.rotation, this.missileData.speed, this.ctx, this.game));
+                break;
+            case "seekerHead":
+                this.enemies.push(new SeekerHead(positionX, positionY, 10, 20, 160, 5, this.ctx, this.game));
+                break;
+            default:
+                break;
+        }
 
         if (this.missileData.interval === 0) {
             this.spawnMissile(index + 1);

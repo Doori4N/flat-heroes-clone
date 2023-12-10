@@ -1,40 +1,6 @@
-export const isRectOverlap = (x1, y1, w1, h1, x2, y2, w2, h2) => {
-    // check horizontal overlap
-    if ((x1 > (x2 + w2)) || ((x1 + w1) < x2))
-        return false;
-    // check vertical overlap
-    if ((y1 > (y2 + h2)) || ((y1 + h1) < y2))
-        return false;
-    return true;
-};
-export const getXOverlap = (x1, w1, x2, w2) => {
-    let leftOverlap = x1 - (x2 + w2);
-    let rightOverlap = x2 - (x1 + w1);
-    // if (leftOverlap <= 0 || rightOverlap <= 0) {
-    //     return 0;
-    // }
-    if (leftOverlap > rightOverlap) {
-        return -leftOverlap;
-    }
-    return rightOverlap;
-}
-export const getYOverlap = (y1, h1, y2, h2) => {
-    let bottomOverlap = y1 - (y2 + h2);
-    let topOverlap = y2 - (y1 + h1);
-    // if (topOverlap <= 0 || bottomOverlap <= 0) {
-    //     return 0;
-    // }
-    if (bottomOverlap > topOverlap) {
-        return -bottomOverlap;
-    }
-    return topOverlap;
-}
-export const checkOverlapSAT = (x1, y1, w1, h1, angle1, x2, y2, w2, h2, angle2) => {
-    // TODO : only check 2 edges for rectangles and squares
-    // TODO : check for circles
-    const vertices1 = getVertices(x1, y1, w1, h1, angle1);
-    const vertices2 = getVertices(x2, y2, w2, h2, angle2);
+import Vector2 from "./vector2.js";
 
+export const checkOverlapPolygon = (vertices1, vertices2) => {
     let minOverlap = Number.MAX_VALUE;
     let minOverlapNormal;
 
@@ -53,18 +19,18 @@ export const checkOverlapSAT = (x1, y1, w1, h1, angle1, x2, y2, w2, h2, angle2) 
         normal.x /= normalLength;
         normal.y /= normalLength;
 
-        const points1 = projectShape(vertices1, normal);
+        const points1 = projectPolygon(vertices1, normal);
         const min1 = points1.min;
         const max1 = points1.max;
 
-        const points2 = projectShape(vertices2, normal);
+        const points2 = projectPolygon(vertices2, normal);
         const min2 = points2.min;
         const max2 = points2.max;
 
         // check if the projections overlap
         if (max1 < min2 || max2 < min1) {
             // there is a separating axis, so no overlap
-            return false;
+            return null;
         }
 
         // get the overlap
@@ -91,18 +57,18 @@ export const checkOverlapSAT = (x1, y1, w1, h1, angle1, x2, y2, w2, h2, angle2) 
         normal.x /= normalLength;
         normal.y /= normalLength;
 
-        const points1 = projectShape(vertices1, normal);
+        const points1 = projectPolygon(vertices1, normal);
         const min1 = points1.min;
         const max1 = points1.max;
 
-        const points2 = projectShape(vertices2, normal);
+        const points2 = projectPolygon(vertices2, normal);
         const min2 = points2.min;
         const max2 = points2.max;
 
         // check if the projections overlap
         if (max1 < min2 || max2 < min1) {
             // there is a separating axis, so no overlap
-            return false;
+            return null;
         }
         // get the overlap
         const overlap = Math.min(max1 - min2, max2 - min1);
@@ -113,10 +79,84 @@ export const checkOverlapSAT = (x1, y1, w1, h1, angle1, x2, y2, w2, h2, angle2) 
         }
     }
     // get the minimum translation vector
-    const mtv = { x: minOverlapNormal.x * minOverlap, y: minOverlapNormal.y * minOverlap };
+    const mtv = new Vector2(minOverlapNormal.x, minOverlapNormal.y);
+    mtv.mult(minOverlap);
     return mtv;
 }
-const projectShape = (vertices, normal) => {
+
+export const ckeckOverlapCirclePolygon = (circleCenter, circleRadius, vertices) => {
+    let minOverlap = Number.MAX_VALUE;
+    let minOverlapNormal = null;
+
+    for (let i = 0; i < vertices.length; i++) {
+        const vertex = vertices[i];
+        const nextVertex = vertices[(i + 1) % vertices.length];
+
+        // get the edge vector
+        const edge = new Vector2(nextVertex.x - vertex.x, nextVertex.y - vertex.y);
+
+        // get the perpendicular vector to the edge (normal)
+        // this normal will be the axis we project shapes onto
+        const axis = Vector2.normal(edge);
+
+        const points1 = projectPolygon(vertices, axis);
+        const min1 = points1.min;
+        const max1 = points1.max;
+
+        const points2 = projectCircle(circleCenter, circleRadius, axis);
+        const min2 = points2.min;
+        const max2 = points2.max;
+
+        // check if the projections overlap
+        if (max1 < min2 || max2 < min1) {
+            // there is a separating axis, so no overlap
+            return null;
+        }
+
+        // get the overlap
+        const overlap = Math.min(max1 - min2, max2 - min1);
+
+        // get the smallest overlap
+        if (overlap < minOverlap) {
+            minOverlap = overlap;
+            minOverlapNormal = axis;
+        }
+    }
+
+    const closestPoint = findClosestPointOnPolygon(circleCenter, vertices);
+    const axis = new Vector2(closestPoint.x - circleCenter.x, closestPoint.y - circleCenter.y);
+    axis.normalize();
+
+    const points1 = projectPolygon(vertices, axis);
+    const min1 = points1.min;
+    const max1 = points1.max;
+
+    const points2 = projectCircle(circleCenter, circleRadius, axis);
+    const min2 = points2.min;
+    const max2 = points2.max;
+
+    // check if the projections overlap
+    if (max1 < min2 || max2 < min1) {
+        // there is a separating axis, so no overlap
+        return null;
+    }
+
+    // get the overlap
+    const overlap = Math.min(max1 - min2, max2 - min1);
+
+    // get the smallest overlap
+    if (overlap < minOverlap) {
+        minOverlap = overlap;
+        minOverlapNormal = axis;
+    }
+
+    // get the minimum translation vector
+    const mtv = new Vector2(minOverlapNormal.x, minOverlapNormal.y);
+    mtv.mult(minOverlap);
+    return mtv;
+}
+
+const projectPolygon = (vertices, normal) => {
     let min = Number.MAX_VALUE;
     let max = -Number.MAX_VALUE;
     vertices.forEach(vertex => {
@@ -130,7 +170,23 @@ const projectShape = (vertices, normal) => {
     });
     return { min, max };
 }
-export const getVertices = (centerX, centerY, width, height, angle) => {
+
+const projectCircle = (circleCenter, circleRadius, axis) => {
+    const dot = Vector2.dot(circleCenter, axis);
+    let min = dot - circleRadius;
+    let max = dot + circleRadius;
+
+    if (min > max) {
+        const temp = min;
+        min = max;
+        max = temp;
+    }
+
+    return { min, max };
+}
+
+export const getRectVertices = (centerX, centerY, width, height, angle) => {
+    // TODO : only check 2 edges for rectangles and squares
     const radians = (-angle * Math.PI) / 180;
     const cos = Math.cos(radians);
     const sin = Math.sin(radians);
@@ -156,6 +212,46 @@ export const getVertices = (centerX, centerY, width, height, angle) => {
     return rotatedVertices;
 }
 
+export const getTriangleVertices = (centerX, centerY, width, height, angle) => {
+    const radians = (-angle * Math.PI) / 180;
+    const cos = Math.cos(radians);
+    const sin = Math.sin(radians);
+
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+
+    // create vertices relative to the center of the triangle
+    const vertices = [
+        { x: -halfWidth, y: -halfHeight },
+        { x: halfWidth, y: 0 },
+        { x: -halfWidth, y: halfHeight }
+    ];
+
+    // rotate the vertices
+    const rotatedVertices = vertices.map(vertex => {
+        const x = vertex.x * cos - vertex.y * sin;
+        const y = vertex.x * sin + vertex.y * cos;
+        return { x: x + centerX, y: y + centerY };
+    });
+
+    return rotatedVertices;
+}
+
 export const getRandInt = (max) => {
     return Math.floor(Math.random() * max);
+}
+
+const findClosestPointOnPolygon = (circleCenter, vertices) => {
+    let closestDistance = Number.MAX_VALUE;
+    let closestPoint = null;
+
+    vertices.forEach(vertex => {
+        const distance = Vector2.distance(circleCenter, vertex);
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestPoint = vertex;
+        }
+    });
+
+    return closestPoint;
 }

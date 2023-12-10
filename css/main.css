@@ -64,7 +64,11 @@ body {
 }
 
 #start:hover {
-    background-color: #45a049; / Changer la couleur au survol */
+    background-color: #45a049; /* Changer la couleur au survol */
+}
+
+#start:active {
+    transform: translate(-50%, -50%) scale(0.95);
 }
 
 #fps {

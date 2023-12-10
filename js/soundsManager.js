@@ -1,5 +1,5 @@
 export default class SoundManager {
-    musicVolume = 0.5;
+    musicVolume = 0.1;
     effectVolume = 0.5;
     sounds;
 
@@ -20,6 +20,11 @@ export default class SoundManager {
                 })
             },
             musics: {
+                background: new Howl({
+                    src: ["./assets/audio/background-music.wav"],
+                    volume: this.musicVolume,
+                    loop: true
+                })
             }
         };
     }

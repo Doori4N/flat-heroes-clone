@@ -1,4 +1,4 @@
-import { checkOverlapSAT, getRandInt } from "../utils.js";
+import {checkOverlapPolygon, getRandInt, getRectVertices} from "../utils.js";
 import Particle from "../Particle.js";
 
 export default class Missile {
@@ -29,10 +29,14 @@ export default class Missile {
         this.draw();
     }
     checkCollision() {
+        const missileVertices = getRectVertices(this.position.x, this.position.y, this.width, this.height, this.rotation);
+
         // check collision with walls
         this.game.currentScene.walls.forEach(wall => {
+            const wallVertices = getRectVertices(wall.position.x, wall.position.y, wall.width, wall.height, wall.rotation);
+
             // get the minimum translation vector
-            const mtv = checkOverlapSAT(this.position.x, this.position.y, this.width, this.height, this.rotation, wall.position.x, wall.position.y, wall.width, wall.height, wall.rotation);
+            const mtv = checkOverlapPolygon(missileVertices, wallVertices);
             if (mtv) {
                 this.explode();
             }
