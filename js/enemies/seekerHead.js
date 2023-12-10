@@ -37,6 +37,7 @@ export default class SeekerHead {
         // update the lifespan and start exploding if it is over
         this.lifespan -= deltaTime;
         if (this.lifespan <= 0) {
+            this.game.soundsManager.sounds.effects.enemyExplosion.play();
             this.isExploding = true;
             this.shakeScreen();
             return;

@@ -1,6 +1,6 @@
 export default class SoundManager {
     musicVolume = 0.1;
-    effectVolume = 0.5;
+    effectVolume = 0.1;
     sounds;
 
     constructor() {
@@ -17,7 +17,11 @@ export default class SoundManager {
                 button: new Howl({
                     src: ["./assets/audio/button_sound.wav"],
                     volume: this.effectVolume
-                })
+                }),
+                enemyExplosion: new Howl({
+                    src: ["./assets/audio/enemy_explosion.wav"],
+                    volume: this.effectVolume
+                }),
             },
             musics: {
                 background: new Howl({
