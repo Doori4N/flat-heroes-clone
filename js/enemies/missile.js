@@ -10,7 +10,9 @@ export default class Missile {
     ctx;
     game;
     tag = "missile";
-    constructor(x, y, width, height, rotation, speed, ctx, game) {
+    color;
+
+    constructor(x, y, width, height, rotation, speed, ctx, game, color) {
         this.position.x = x;
         this.position.y = y;
         this.rotation = rotation;
@@ -19,6 +21,7 @@ export default class Missile {
         this.speed = speed;
         this.ctx = ctx;
         this.game = game;
+        this.color = color;
     }
     update(deltaTime) {
         // apply force according to rotation
@@ -56,7 +59,7 @@ export default class Missile {
         // draw the rectangle
         // translate to the top left corner of the rectangle
         this.ctx.translate(-this.width / 2, -this.height / 2);
-        this.ctx.fillStyle = "red";
+        this.ctx.fillStyle = this.color;
         this.ctx.fillRect(0, 0, rectWidth, rectHeight);
 
         // draw the upper circle
@@ -82,7 +85,7 @@ export default class Missile {
             const randomVelocityX = Math.cos(getRandInt(360) * Math.PI / 180) * getRandInt(2);
             const randomVelocityY = Math.sin(getRandInt(360) * Math.PI / 180) * getRandInt(2);
             const randomRotation = getRandInt(360);
-            this.game.currentScene.particles.push(new Particle(this.position.x, this.position.y, 2, 2, randomVelocityX, randomVelocityY, randomRotation, this.ctx, "red", this.game, 0.3));
+            this.game.currentScene.particles.push(new Particle(this.position.x, this.position.y, 2, 2, randomVelocityX, randomVelocityY, randomRotation, this.ctx, this.color, this.game, 0.3));
         }
         // remove the enemy from the scene
         const enemyIndex = this.game.currentScene.enemies.indexOf(this);

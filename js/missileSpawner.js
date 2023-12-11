@@ -1,5 +1,6 @@
 import Missile from "./enemies/missile.js";
 import SeekerHead from "./enemies/seekerHead.js";
+import Boss from "./enemies/boss.js";
 
 export default class MissileSpawner {
     missileData;
@@ -31,10 +32,13 @@ export default class MissileSpawner {
 
         switch (this.missileData.type) {
             case "missile":
-                this.enemies.push(new Missile(positionX, positionY, 8, 32, this.missileData.rotation, this.missileData.speed, this.ctx, this.game));
+                this.enemies.push(new Missile(positionX, positionY, 8, 32, this.missileData.rotation, this.missileData.speed, this.ctx, this.game, this.missileData.color));
                 break;
             case "seekerHead":
-                this.enemies.push(new SeekerHead(positionX, positionY, 10, 20, 160, 5, this.ctx, this.game));
+                this.enemies.push(new SeekerHead(positionX, positionY, 10, 20, this.missileData.speed, 5, this.ctx, this.game, this.missileData.color));
+                break;
+            case "boss":
+                this.enemies.push(new Boss(positionX, positionY, 40, 20, this.missileData.speed, this.ctx, this.game, this.missileData.color));
                 break;
             default:
                 break;

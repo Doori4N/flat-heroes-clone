@@ -1,6 +1,6 @@
 import {checkOverlapPolygon, getRandInt, getRectVertices} from "./utils.js";
 import InputManager from "./inputs/InputManager.js";
-import Particle from "./Particle.js";
+import Particle from "./particle.js";
 import Vector2 from "./vector2.js";
 
 const MOVEMENT_SPEED = 4;

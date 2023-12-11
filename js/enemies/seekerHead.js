@@ -15,8 +15,9 @@ export default class SeekerHead {
     explosionRadius;
     tag = "seekerHead";
     isExploding = false;
+    color;
 
-    constructor(x, y, width, height, maxSpeed, lifespan, ctx, game) {
+    constructor(x, y, width, height, maxSpeed, lifespan, ctx, game, color) {
         this.position.x = x;
         this.position.y = y;
         this.width = width;
@@ -26,6 +27,7 @@ export default class SeekerHead {
         this.lifespan = lifespan;
         this.ctx = ctx;
         this.game = game;
+        this.color = color;
     }
 
     update(deltaTime) {
@@ -139,7 +141,7 @@ export default class SeekerHead {
         this.ctx.lineTo(this.height / 2, 0);
         this.ctx.lineTo(-this.height / 2, this.width / 2);
         this.ctx.closePath();
-        this.ctx.fillStyle = "red";
+        this.ctx.fillStyle = this.color;
         this.ctx.fill();
 
         this.ctx.restore();
@@ -153,7 +155,7 @@ export default class SeekerHead {
         // draw an empty circle
         this.ctx.beginPath();
         this.ctx.arc(0, 0, this.explosionRadius, 0, Math.PI * 2);
-        this.ctx.strokeStyle = "red";
+        this.ctx.strokeStyle = this.color;
         this.ctx.lineWidth = 3;
         this.ctx.stroke();
         this.ctx.closePath();
@@ -171,7 +173,6 @@ export default class SeekerHead {
             // get the minimum translation vector
             const mtv = checkOverlapPolygon(seekerHeadVertices, wallVertices);
             if (mtv) {
-                console.log("collision");
                 // get the vector between the two objects
                 const vector = new Vector2(wall.position.x, wall.position.y);
                 vector.sub(this.position);
