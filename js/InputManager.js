@@ -1,3 +1,5 @@
+import Vector2 from "./vector2.js";
+
 export default class InputManager {
     states = {
         left: false,
@@ -6,14 +8,13 @@ export default class InputManager {
         down: false,
         jump: false
     };
-    direction = {
-        x: 0,
-        y: 0
-    };
+    direction = new Vector2(0, 0);
     type;
+
     constructor(type, controllerIndex) {
         this.type = type;
         this.controllerIndex = controllerIndex;
+
         switch (type) {
             case "keyboard":
                 this.listenKeyboard();
@@ -21,8 +22,11 @@ export default class InputManager {
             case "gamepad":
                 this.listenGamepad();
                 break;
+            default:
+                break;
         }
     }
+
     update() {
         if (this.type === "gamepad") {
             this.listenGamepad();
@@ -31,6 +35,7 @@ export default class InputManager {
         this.direction.x = 0;
         this.direction.y = 0;
 
+        // update the direction
         if (this.states.left && !this.states.right) {
             this.direction.x = -1;
         }
@@ -44,6 +49,7 @@ export default class InputManager {
             this.direction.y = 1;
         }
     }
+
     listenKeyboard() {
         window.addEventListener('keydown', (e) => {
             switch (e.code) {
@@ -64,6 +70,7 @@ export default class InputManager {
                     break;
             }
         });
+
         window.addEventListener('keyup', (e) => {
             switch (e.code) {
                 case 'ArrowUp':
@@ -84,6 +91,7 @@ export default class InputManager {
             }
         });
     }
+
     listenGamepad() {
         this.gamepad = navigator.getGamepads()[this.controllerIndex];
         const deadzone = 0.3;
@@ -92,6 +100,7 @@ export default class InputManager {
         this.states.right = false;
         this.states.up = false;
         this.states.down = false;
+
         this.direction.x = 0;
         this.direction.y = 0;
 

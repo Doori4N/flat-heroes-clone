@@ -65,6 +65,7 @@ const start = () => {
             <p>FPS: 0</p>
         </div>
     `;
+
     // move keyboard player to the end of the array
     // because we need gamepad index to match player index
     const keyboardPlayer = inputTypes.indexOf("keyboard");

@@ -1,11 +1,12 @@
-import Vector2 from "../vector2.js";
-import {ckeckOverlapCirclePolygon, getRandInt, getRectVertices} from "../utils.js";
+import Vector2 from "../../vector2.js";
+import { getClosestObject, getRandInt, shakeScreen} from "../../utils.js";
 import Particle from "../particle.js";
+import Collision2D from "../../collision2D.js";
 
 const AIMING_TIME = 1.5;
 
 export default class Boss {
-    position = new Vector2(0, 0);
+    position;
     velocity = new Vector2(0, 0);
     radius;
     cxt;
@@ -17,12 +18,11 @@ export default class Boss {
     color;
     speed;
 
-    constructor(x, y, radius, lifespan, speed, ctx, game, color) {
-        this.position.x = x;
-        this.position.y = y;
+    constructor(x, y, radius, lifespan, speed, game, color) {
+        this.position = new Vector2(x, y);
         this.radius = radius;
         this.lifespan = lifespan;
-        this.ctx = ctx;
+        this.ctx = game.ctx;
         this.game = game;
         this.color = color;
         this.speed = speed;
@@ -32,15 +32,7 @@ export default class Boss {
         if (this.isAiming) {
             this.aimingTime -= deltaTime;
             if (this.aimingTime <= 0) {
-                const player = this.getClosestPlayer();
-                if (player) {
-                    this.isAiming = false;
-
-                    const direction = new Vector2(player.position.x - this.position.x, player.position.y - this.position.y);
-                    direction.setMag(this.speed);
-
-                    this.velocity.add(direction);
-                }
+                this.aim();
             }
         }
 
@@ -48,7 +40,7 @@ export default class Boss {
         this.lifespan -= deltaTime;
         if (this.lifespan <= 0) {
             this.explode();
-            this.shakeScreen();
+            shakeScreen(this.ctx, 15);
             return;
         }
 
@@ -58,6 +50,33 @@ export default class Boss {
 
         this.checkCollision();
         this.draw();
+    }
+
+    aim() {
+        const random = getRandInt(4);
+
+        // set a random direction to prevent the boss from getting stuck behind a wall
+        if (random < 1) {
+            this.isAiming = false;
+
+            const randomDirections = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}];
+            const randomInt = getRandInt(4);
+            const randomDirection = new Vector2(randomDirections[randomInt].x, randomDirections[randomInt].y);
+            randomDirection.setMag(this.speed);
+
+            this.velocity.add(randomDirection);
+        }
+        else {
+            const player = getClosestObject(this.game.currentScene.players, this.position);
+            if (player) {
+                this.isAiming = false;
+
+                const direction = new Vector2(player.position.x - this.position.x, player.position.y - this.position.y);
+                direction.setMag(this.speed);
+
+                this.velocity.add(direction);
+            }
+        }
     }
 
     draw() {
@@ -74,28 +93,15 @@ export default class Boss {
         this.ctx.restore();
     }
 
-    getClosestPlayer() {
-        let closestPlayer;
-        let closestDistance = Number.MAX_VALUE;
-
-        this.game.currentScene.players.forEach(player => {
-            const distance = Vector2.distance(this.position, player.position);
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestPlayer = player;
-            }
-        });
-
-        return closestPlayer;
-    }
-
     checkCollision() {
         this.game.currentScene.walls.forEach(wall => {
-            const wallVertices = getRectVertices(wall.position.x, wall.position.y, wall.width, wall.height, wall.rotation);
+            const wallVertices = Collision2D.getRectVertices(wall.position.x, wall.position.y, wall.width, wall.height, wall.rotation);
 
             // get the minimum translation vector
-            const mtv = ckeckOverlapCirclePolygon(this.position, this.radius, wallVertices);
+            const mtv = Collision2D.ckeckOverlapCirclePolygonSAT(this.position, this.radius, wallVertices);
             if (mtv) {
+                shakeScreen(this.ctx, 15);
+
                 this.isAiming = true;
                 this.aimingTime = AIMING_TIME;
 
@@ -128,10 +134,10 @@ export default class Boss {
         });
 
         this.game.currentScene.players.forEach(player => {
-            const playerVertices = getRectVertices(player.position.x, player.position.y, player.width, player.height, player.rotation);
+            const playerVertices = Collision2D.getRectVertices(player.position.x, player.position.y, player.width, player.height, player.rotation);
 
             // get the minimum translation vector
-            const mtv = ckeckOverlapCirclePolygon(this.position, this.radius, playerVertices);
+            const mtv = Collision2D.ckeckOverlapCirclePolygonSAT(this.position, this.radius, playerVertices);
             if (mtv) {
                 player.explode();
             }
@@ -147,27 +153,11 @@ export default class Boss {
             const randomVelocityX = Math.cos(getRandInt(360) * Math.PI / 180) * getRandInt(4);
             const randomVelocityY = Math.sin(getRandInt(360) * Math.PI / 180) * getRandInt(4);
             const randomRotation = getRandInt(360);
-            this.game.currentScene.particles.push(new Particle(this.position.x, this.position.y, 6, 6, randomVelocityX, randomVelocityY, randomRotation, this.ctx, this.color, this.game, 1));
+            this.game.currentScene.particles.push(new Particle(this.position.x, this.position.y, 6, 6, randomVelocityX, randomVelocityY, randomRotation, this.color, this.game, 1));
         }
 
         // remove the enemy from the scene
         const enemyIndex = this.game.currentScene.enemies.indexOf(this);
         this.game.currentScene.enemies.splice(enemyIndex, 1);
-    }
-
-    shakeScreen() {
-        const intensity = 15;
-        const offsetX = Math.random() * intensity - intensity / 2;
-        const offsetY = Math.random() * intensity - intensity / 2;
-
-        this.ctx.save();
-
-        // apply shake
-        this.ctx.translate(offsetX, offsetY);
-
-        // restore the context after a short delay
-        setTimeout(() => {
-            this.ctx.restore();
-        }, 50);
     }
 }

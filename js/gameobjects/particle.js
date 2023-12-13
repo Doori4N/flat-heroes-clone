@@ -1,17 +1,13 @@
+import Vector2 from "../vector2.js";
+
 export default class Particle {
-    constructor(x, y, width, height, velocityX, velocityY, rotation, ctx, color, game, lifetime) {
-        this.position = {
-            x: x,
-            y: y
-        }
+    constructor(x, y, width, height, velocityX, velocityY, rotation, color, game, lifetime) {
+        this.position = new Vector2(x, y);
         this.width = width;
         this.height = height;
-        this.velocity = {
-            x: velocityX,
-            y: velocityY
-        };
+        this.velocity = new Vector2(velocityX, velocityY);
         this.rotation = rotation;
-        this.ctx = ctx;
+        this.ctx = game.ctx;
         this.color = color;
         this.lifetime = lifetime;
         this.game = game;

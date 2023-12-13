@@ -1,10 +1,11 @@
-import Vector2 from "../vector2.js";
-import {checkOverlapPolygon, ckeckOverlapCirclePolygon, getRectVertices, getTriangleVertices} from "../utils.js";
+import Vector2 from "../../vector2.js";
+import { getClosestObject, shakeScreen } from "../../utils.js";
+import Collision2D from "../../collision2D.js";
 
 let REPULSION_FORCE = 500;
 
 export default class SeekerHead {
-    position = new Vector2(0, 0);
+    position;
     velocity = new Vector2(0, 0);
     rotation = 0;
     maxSpeed;
@@ -17,15 +18,14 @@ export default class SeekerHead {
     isExploding = false;
     color;
 
-    constructor(x, y, width, height, maxSpeed, lifespan, ctx, game, color) {
-        this.position.x = x;
-        this.position.y = y;
+    constructor(x, y, width, height, maxSpeed, lifespan, game, color) {
+        this.position = new Vector2(x, y);
         this.width = width;
         this.height = height;
         this.explosionRadius = height / 2;
         this.maxSpeed = maxSpeed;
         this.lifespan = lifespan;
-        this.ctx = ctx;
+        this.ctx = game.ctx;
         this.game = game;
         this.color = color;
     }
@@ -41,12 +41,12 @@ export default class SeekerHead {
         if (this.lifespan <= 0) {
             this.game.soundsManager.sounds.effects.enemyExplosion.play();
             this.isExploding = true;
-            this.shakeScreen();
+            shakeScreen(this.ctx, 10);
             return;
         }
 
         // update velocity
-        const player = this.getClosestPlayer();
+        const player = getClosestObject(this.game.currentScene.players, this.position);
         if (player) {
             this.seek(player);
             this.separate();
@@ -57,7 +57,6 @@ export default class SeekerHead {
         this.position.y += this.velocity.y * deltaTime;
 
         this.checkCollision();
-
         this.draw();
     }
 
@@ -101,7 +100,7 @@ export default class SeekerHead {
     separate() {
         this.game.currentScene.enemies.forEach(enemy => {
             if (enemy !== this && enemy.tag === "seekerHead") {
-                // get the vector between the two objects oriented towards the current object
+                // get the vector between the two objects, oriented towards the current object
                 const vector = new Vector2(this.position.x, this.position.y);
                 vector.sub(enemy.position);
 
@@ -112,21 +111,6 @@ export default class SeekerHead {
                 this.velocity.add(vector);
             }
         });
-    }
-
-    getClosestPlayer() {
-        let closestPlayer;
-        let closestDistance = Number.MAX_VALUE;
-
-        this.game.currentScene.players.forEach(player => {
-            const distance = Vector2.distance(this.position, player.position);
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestPlayer = player;
-            }
-        });
-
-        return closestPlayer;
     }
 
     draw() {
@@ -164,14 +148,14 @@ export default class SeekerHead {
     }
 
     checkCollision() {
-        const seekerHeadVertices = getTriangleVertices(this.position.x, this.position.y, this.width, this.height, this.rotation);
+        const seekerHeadVertices = Collision2D.getTriangleVertices(this.position.x, this.position.y, this.width, this.height, this.rotation);
 
         // check collision with walls
         this.game.currentScene.walls.forEach(wall => {
-            const wallVertices = getRectVertices(wall.position.x, wall.position.y, wall.width, wall.height, wall.rotation);
+            const wallVertices = Collision2D.getRectVertices(wall.position.x, wall.position.y, wall.width, wall.height, wall.rotation);
 
             // get the minimum translation vector
-            const mtv = checkOverlapPolygon(seekerHeadVertices, wallVertices);
+            const mtv = Collision2D.checkOverlapPolygonSAT(seekerHeadVertices, wallVertices);
             if (mtv) {
                 // get the vector between the two objects
                 const vector = new Vector2(wall.position.x, wall.position.y);
@@ -194,30 +178,14 @@ export default class SeekerHead {
 
     checkCollisionWithShockwave() {
         this.game.currentScene.players.forEach(player => {
-            const vertices = getRectVertices(player.position.x, player.position.y, player.width, player.height, player.rotation);
+            const vertices = Collision2D.getRectVertices(player.position.x, player.position.y, player.width, player.height, player.rotation);
 
-            const mtv = ckeckOverlapCirclePolygon(this.position, this.explosionRadius, vertices);
+            const mtv = Collision2D.ckeckOverlapCirclePolygonSAT(this.position, this.explosionRadius, vertices);
 
-            // if collision kill the player
+            // if collision, kill the player
             if (mtv) {
                 player.explode();
             }
         })
-    }
-
-    shakeScreen() {
-        const intensity = 10; // Intensité de la secousse
-        const offsetX = Math.random() * intensity - intensity / 2;
-        const offsetY = Math.random() * intensity - intensity / 2;
-
-        this.ctx.save();
-
-        // apply shake
-        this.ctx.translate(offsetX, offsetY);
-
-        // restore the context after a short delay
-        setTimeout(() => {
-            this.ctx.restore();
-        }, 50);
     }
 }

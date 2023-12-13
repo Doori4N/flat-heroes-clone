@@ -1,4 +1,7 @@
 export default class Vector2 {
+    x;
+    y;
+
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -30,8 +33,8 @@ export default class Vector2 {
 
     normalize() {
         const length = this.mag();
-        this.x /= length;
-        this.y /= length;
+        if (length === 0) return;
+        this.div(length);
     }
 
     setMag(length) {

@@ -1,14 +1,14 @@
-import Wall from "./wall.js";
-import Player from "./player.js";
-import sceneData from "./sceneData.json" assert { type: 'json' };
-import MissileSpawner from "./missileSpawner.js";
+import sceneData from "../assets/json/scenes.json" assert { type: 'json' };
 import SoundsManager from "./soundsManager.js";
+import SceneParser from "./sceneParser.js";
 
 const SCENE_WIDTH = 800;
 const SCENE_HEIGHT = 800;
 let lastTime = 0;
 
 export default class Game {
+    sceneWidth = SCENE_WIDTH;
+    sceneHeight = SCENE_HEIGHT;
     scenes = sceneData.scenes;
     sceneIndex = 0;
     currentScene = {};
@@ -26,21 +26,25 @@ export default class Game {
         this.ctx.canvas.height = window.innerHeight;
         this.inputTypes = inputTypes;
     }
+
     start() {
         this.soundsManager.sounds.musics.background.play();
         this.showMenu();
     }
+
     createScene(data) {
-        this.currentScene.walls = this.parseWalls(data.walls);
-        this.currentScene.players = this.parsePlayers(data.spawns);
-        this.currentScene.enemies = this.parseEnemies(data.enemies);
+        this.currentScene.walls = SceneParser.parseWalls(data.verticalWalls, data.horizontalWalls, this);
+        this.currentScene.players = SceneParser.parsePlayers(data.spawns, this);
+        this.currentScene.enemies = SceneParser.parseEnemies(data.enemies, this);
         this.currentScene.particles = [];
         this.currentScene.endTime = data.endTime;
 
-        // start update loop
         this.startTime = performance.now();
+
+        // start update loop
         requestAnimationFrame(this.update.bind(this));
     }
+
     update(time) {
         // get delta time
         if (lastTime === 0) {
@@ -56,18 +60,18 @@ export default class Game {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
         // update game objects
-        this.currentScene.walls.forEach(wall => {
-            wall.render(this.ctx);
-        });
-        this.currentScene.players.forEach(player => {
-            player.update(deltaTime);
-        });
-        this.currentScene.enemies.forEach(enemy => {
-            enemy.update(deltaTime);
-        });
-        this.currentScene.particles.forEach(particle => {
-            particle.update(deltaTime);
-        });
+        for (let i = this.currentScene.players.length - 1; i >= 0; i--) {
+            this.currentScene.players[i].update(deltaTime);
+        }
+        for (let i = this.currentScene.enemies.length - 1; i >= 0; i--) {
+            this.currentScene.enemies[i].update(deltaTime);
+        }
+        for (let i = this.currentScene.walls.length - 1; i >= 0; i--) {
+            this.currentScene.walls[i].update(deltaTime);
+        }
+        for (let i = this.currentScene.particles.length - 1; i >= 0; i--) {
+            this.currentScene.particles[i].update(deltaTime);
+        }
 
         // if there is no player left
         if (this.currentScene.players.length <= 0 && this.currentScene.particles.length <= 0) {
@@ -83,6 +87,7 @@ export default class Game {
         this.frameCount++;
         requestAnimationFrame(this.update.bind(this));
     }
+
     measureFPS(time) {
         const diffTime = time - this.lastMeasure;
         if (diffTime >= 1000) {
@@ -95,6 +100,7 @@ export default class Game {
             fpsElement.innerHTML = `FPS: ${Math.round(fps)}`;
         }
     }
+
     changeScene(idx) {
         if (idx < this.scenes.length) {
             this.sceneIndex = idx;
@@ -104,104 +110,7 @@ export default class Game {
             this.showMenu();
         }
     }
-    parsePlayers(spawns) {
-        const colors = ["purple", "yellow", "green", "pink"];
-        let players = [];
 
-        this.inputTypes.forEach((inputType, idx) => {
-            const spawn = spawns[idx];
-            const offsetX = window.innerWidth / 2 - SCENE_WIDTH / 2;
-            const offsetY = window.innerHeight / 2 - SCENE_HEIGHT / 2;
-            players.push(new Player(spawn.x + offsetX, spawn.y + offsetY, 30, 30, this.ctx, colors[idx], this, idx, inputType));
-        });
-
-        return players;
-    }
-    parseWalls(wallData) {
-        let sceneLength = wallData.length;
-        let walls = [];
-
-        // coordonnées des murs exterieurs
-        const screenCenterX = window.innerWidth / 2;
-        const screenCenterY = window.innerHeight / 2;
-        const startX = window.innerWidth / 2 - SCENE_WIDTH / 2;
-        const startY = window.innerHeight / 2 - SCENE_HEIGHT / 2;
-        const horizontalOffset = 50;
-        const verticalOffset = 50;
-
-        // on crée les murs interieurs horizontaux
-        for (let i = 0; i < sceneLength; i++) {
-            let wall = {};
-            for (let j = 0; j < sceneLength; j++) {
-                if (wallData[i][j] === 1) {
-                    if (wall.x === undefined) {
-                        wall.x = j;
-                        wall.y = i;
-                        wall.width = 1;
-                    }
-                    else {
-                        wall.width++;
-                    }
-                }
-                else {
-                    if (wall.x !== undefined && wall.width > 1) {
-                        const position = { x: (wall.x + wall.width / 2) * 100 + startX, y: wall.y * 100 + startY };
-                        walls.push(new Wall(position.x, position.y, wall.width * 100, 7, 0, "blue"));
-                    }
-                    wall = {};
-                }
-            }
-            if (wall.x !== undefined && wall.width > 1) {
-                const position = { x: (wall.x + wall.width / 2) * 100 + startX, y: wall.y * 100 + startY };
-                walls.push(new Wall(position.x, position.y, wall.width * 100, 7, 0, "blue"));
-            }
-        }
-        // on crée les murs interieurs verticaux
-        for (let i = 0; i < sceneLength; i++) {
-            let wall = {};
-            for (let j = 0; j < sceneLength; j++) {
-                if (wallData[j][i] === 1) {
-                    if (wall.x === undefined) {
-                        wall.x = i;
-                        wall.y = j;
-                        wall.width = 1;
-                    }
-                    else {
-                        wall.width++;
-                    }
-                }
-                else {
-                    if (wall.x !== undefined && wall.width > 1) {
-                        const position = { x: wall.x * 100 + startX, y: (wall.y + wall.width / 2) * 100 + startY };
-                        walls.push(new Wall(position.x, position.y, wall.width * 100, 7, 90, "blue"));
-                    }
-                    wall = {};
-                }
-            }
-            if (wall.x !== undefined && wall.width > 1) {
-                const position = { x: wall.x * 100 + startX, y: (wall.y + wall.width / 2) * 100 + startY };
-                walls.push(new Wall(position.x, position.y, wall.width * 100, 7, 90, "blue"));
-            }
-        }
-
-        // on crée les murs exterieurs
-        walls.push(new Wall(screenCenterX - SCENE_WIDTH / 2, screenCenterY + 3.5, SCENE_WIDTH, 7, 90,"green"));
-        walls.push(new Wall(screenCenterX - 3.5, screenCenterY - SCENE_HEIGHT / 2, SCENE_WIDTH, 7, 0, "yellow"));
-        walls.push(new Wall(screenCenterX + SCENE_WIDTH / 2, screenCenterY - 3.5, SCENE_WIDTH, 7, 90, "pink"));
-        walls.push(new Wall(screenCenterX + 3.5, screenCenterY + SCENE_HEIGHT / 2, SCENE_WIDTH, 7, 0, "purple"));
-
-        return walls;
-    }
-    parseEnemies(enemyData) {
-        let enemies = [];
-
-        enemyData.forEach(enemy => {
-            const spawner = new MissileSpawner(enemy, this.ctx, this, enemies);
-            spawner.start();
-        });
-
-        return enemies;
-    }
     showLossMenu() {
         const body = document.querySelector("body");
         const menu = document.createElement("div");
@@ -228,6 +137,7 @@ export default class Game {
             menu.remove();
         });
     }
+
     showWinMenu() {
         const body = document.querySelector("body");
         const menu = document.createElement("div");
@@ -254,6 +164,7 @@ export default class Game {
             menu.remove();
         });
     }
+
     showMenu() {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         const body = document.querySelector("body");

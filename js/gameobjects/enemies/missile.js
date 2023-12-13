@@ -1,8 +1,10 @@
-import {checkOverlapPolygon, getRandInt, getRectVertices} from "../utils.js";
-import Particle from "../Particle.js";
+import { getRandInt } from "../../utils.js";
+import Particle from "../particle.js";
+import Vector2 from "../../vector2.js";
+import Collision2D from "../../collision2D.js";
 
 export default class Missile {
-    position = { x: 0, y: 0 };
+    position;
     rotation = 0;
     width;
     height;
@@ -12,17 +14,17 @@ export default class Missile {
     tag = "missile";
     color;
 
-    constructor(x, y, width, height, rotation, speed, ctx, game, color) {
-        this.position.x = x;
-        this.position.y = y;
+    constructor(x, y, width, height, rotation, speed, game, color) {
+        this.position = new Vector2(x, y);
         this.rotation = rotation;
         this.width = width;
         this.height = height;
         this.speed = speed;
-        this.ctx = ctx;
+        this.ctx = game.ctx;
         this.game = game;
         this.color = color;
     }
+
     update(deltaTime) {
         // apply force according to rotation
         this.position.x += this.speed * deltaTime * Math.sin(this.rotation * Math.PI / 180);
@@ -31,23 +33,36 @@ export default class Missile {
         this.checkCollision();
         this.draw();
     }
+
     checkCollision() {
-        const missileVertices = getRectVertices(this.position.x, this.position.y, this.width, this.height, this.rotation);
+        const missileVertices = Collision2D.getRectVertices(this.position.x, this.position.y, this.width, this.height, this.rotation);
 
         // check collision with walls
         this.game.currentScene.walls.forEach(wall => {
-            const wallVertices = getRectVertices(wall.position.x, wall.position.y, wall.width, wall.height, wall.rotation);
+            const wallVertices = Collision2D.getRectVertices(wall.position.x, wall.position.y, wall.width, wall.height, wall.rotation);
 
             // get the minimum translation vector
-            const mtv = checkOverlapPolygon(missileVertices, wallVertices);
+            const mtv = Collision2D.checkOverlapPolygonSAT(missileVertices, wallVertices);
             if (mtv) {
                 this.explode();
             }
         });
+
+        // check collision with players
+        this.game.currentScene.players.forEach(player => {
+            const playerVertices = Collision2D.getRectVertices(player.position.x, player.position.y, player.width, player.height, player.rotation);
+
+            const mtv = Collision2D.checkOverlapPolygonSAT(missileVertices, playerVertices);
+            if (mtv) {
+                this.explode();
+                player.explode();
+            }
+        });
     }
+
     draw() {
         const rectWidth = this.width;
-        const rectHeight = this.height - (this.width * 2);
+        const rectHeight = this.height - this.width;
         const circleRadius = this.width / 2;
 
         this.ctx.save();
@@ -58,7 +73,7 @@ export default class Missile {
 
         // draw the rectangle
         // translate to the top left corner of the rectangle
-        this.ctx.translate(-this.width / 2, -this.height / 2);
+        this.ctx.translate(-this.width / 2, -rectHeight / 2);
         this.ctx.fillStyle = this.color;
         this.ctx.fillRect(0, 0, rectWidth, rectHeight);
 
@@ -79,14 +94,16 @@ export default class Missile {
 
         this.ctx.restore();
     }
+
     explode() {
         // create particles
         for (let i = 0; i < 2; i++) {
             const randomVelocityX = Math.cos(getRandInt(360) * Math.PI / 180) * getRandInt(2);
             const randomVelocityY = Math.sin(getRandInt(360) * Math.PI / 180) * getRandInt(2);
             const randomRotation = getRandInt(360);
-            this.game.currentScene.particles.push(new Particle(this.position.x, this.position.y, 2, 2, randomVelocityX, randomVelocityY, randomRotation, this.ctx, this.color, this.game, 0.3));
+            this.game.currentScene.particles.push(new Particle(this.position.x, this.position.y, 2, 2, randomVelocityX, randomVelocityY, randomRotation, this.color, this.game, 0.3));
         }
+
         // remove the enemy from the scene
         const enemyIndex = this.game.currentScene.enemies.indexOf(this);
         this.game.currentScene.enemies.splice(enemyIndex, 1);
