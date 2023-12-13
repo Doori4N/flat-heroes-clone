@@ -124,7 +124,7 @@ export default class Collision2D {
         const min1 = points1.min;
         const max1 = points1.max;
 
-        const points2 = projectCircle(circleCenter, circleRadius, axis);
+        const points2 = Collision2D.projectCircle(circleCenter, circleRadius, axis);
         const min2 = points2.min;
         const max2 = points2.max;
 
