@@ -65,14 +65,14 @@ export default class SceneParser {
             }
         }
         // create vertical walls
-        for (let i = 0; i < verticalWallArr.length; i++) {
+        for (let i = 0; i < verticalWallArr[0].length; i++) {
             let wall = {};
-            for (let j = 0; j < verticalWallArr[i].length; j++) {
+            for (let j = 0; j < verticalWallArr.length; j++) {
                 // create a new wall or update the width of the current wall
-                if (verticalWallArr[i][j] === 1) {
+                if (verticalWallArr[j][i] === 1) {
                     if (wall.x === undefined) {
-                        wall.x = j;
-                        wall.y = i;
+                        wall.x = i;
+                        wall.y = j;
                         wall.width = 1;
                     }
                     else {
