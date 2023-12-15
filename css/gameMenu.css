@@ -92,3 +92,18 @@ button:hover {
 button:active {
     transform: scale(0.92);
 }
+
+select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #fff;
+    color: #333;
+    cursor: pointer;
+}
+
+select option {
+    background-color: #fff;
+    color: #333;
+}
