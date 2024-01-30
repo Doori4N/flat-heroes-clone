@@ -12,5 +12,5 @@ The **controls** are the following:
 - **Jump / Dash:** space or the A button for the controller 
 
 ## Developers
-- Student 1 : **Hugo Savasta**
-- Student 2 : **Dorian Girard**
+- Student 1 : [**Hugo Savasta**](https://github.com/HugoSavasta)
+- Student 2 : [**Dorian Girard**](https://github.com/Doori4N)
