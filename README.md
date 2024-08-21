@@ -1,4 +1,4 @@
-# Minor : Web Technologies (Javascript Introduction)
+# Flat Heroes JS
 This game is a university project based on the game Flat Heroes.
 
 ## Demo
