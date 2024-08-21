@@ -27,6 +27,7 @@ export default class Game {
     }
 
     async start() {
+        // load scene data
         const sceneData = await fetch('/flat-heroes-js/assets/json/scenes.json').then(response => response.json());
         this.scenes = sceneData.scenes;
 
