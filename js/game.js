@@ -1,4 +1,3 @@
-import sceneData from "../assets/json/scenes.json" assert { type: 'json' };
 import SoundsManager from "./soundsManager.js";
 import SceneParser from "./sceneParser.js";
 
@@ -9,7 +8,7 @@ let lastTime = 0;
 export default class Game {
     sceneWidth = SCENE_WIDTH;
     sceneHeight = SCENE_HEIGHT;
-    scenes = sceneData.scenes;
+    scenes = [];
     sceneIndex = 0;
     currentScene = {};
     ctx;
@@ -27,7 +26,10 @@ export default class Game {
         this.inputTypes = inputTypes;
     }
 
-    start() {
+    async start() {
+        const sceneData = await fetch('../assets/json/scenes.json').then(response => response.json());
+        this.scenes = sceneData.scenes;
+
         this.soundsManager.sounds.musics.background.play();
         this.showMenu();
     }
