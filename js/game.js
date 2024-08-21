@@ -27,7 +27,7 @@ export default class Game {
     }
 
     async start() {
-        const sceneData = await fetch('../assets/json/scenes.json').then(response => response.json());
+        const sceneData = await fetch('/assets/json/scenes.json').then(response => response.json());
         this.scenes = sceneData.scenes;
 
         this.soundsManager.sounds.musics.background.play();
