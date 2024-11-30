@@ -2,7 +2,7 @@
 This game is a university project based on the game Flat Heroes.
 
 ## Demo
-You can play the game [here](https://doori4n.github.io/flat-heroes-js/)
+You can play the game [here](https://doriangirard9.github.io/flat-heroes-js/)
 
 ## How to play
 The game can be played with a **keyboard** or a **controller**.
@@ -13,4 +13,4 @@ The **controls** are the following:
 
 ## Developers
 - Student 1 : [**Hugo Savasta**](https://github.com/HugoSavasta)
-- Student 2 : [**Dorian Girard**](https://github.com/Doori4N)
+- Student 2 : [**Dorian Girard**](https://github.com/doriangirard9)
